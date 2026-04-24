@@ -1,0 +1,57 @@
+---
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import ProjectCard from "@/components/ProjectCard.astro";
+import { projects } from "@/data/projects";
+import { t } from "@/data/site";
+import { getLocalePaths } from "@/i18n/utils";
+import type { Lang } from "@/data/site";
+
+export function getStaticPaths() {
+  return getLocalePaths();
+}
+
+const { lang } = Astro.params as { lang: Lang };
+const trans = t(lang);
+---
+
+<BaseLayout title={trans.projects.heading} lang={lang}>
+  <div class="max-w-5xl mx-auto px-4 sm:px-6 py-10 sm:py-14">
+
+    <header class="mb-10">
+      <a
+        href={`/${lang}`}
+        class="inline-block font-mono text-xs opacity-40 hover:opacity-80 mb-8"
+        style="color: var(--color-fg);"
+      >
+        {trans.back}
+      </a>
+      <a
+        href={`/${lang}/projects`}
+        class="block font-mono text-xs uppercase tracking-widest underline underline-offset-4 mb-3"
+        style="color: var(--color-muted);"
+      >
+        {trans.projects.lead}
+      </a>
+      <h1 class="text-3xl sm:text-4xl font-bold" style="color: var(--color-fg);">
+        {trans.projects.heading}
+      </h1>
+    </header>
+
+    {
+      projects.length === 0 ? (
+        <p class="font-mono text-sm" style="color: var(--color-muted);">
+          {trans.projects.empty}
+        </p>
+      ) : (
+        <div
+          class="grid sm:grid-cols-2 lg:grid-cols-3 gap-px"
+          style="background: var(--color-border-lo);"
+        >
+          {projects.map((p) => (
+            <ProjectCard {...p} lang={lang} />
+          ))}
+        </div>
+      )
+    }
+  </div>
+</BaseLayout>

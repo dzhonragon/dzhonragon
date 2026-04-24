@@ -1,0 +1,64 @@
+---
+import type { Lang } from "@/data/site";
+
+interface Props {
+  title: string;
+  description: string;
+  pubDate: Date;
+  slug: string;
+  tags: string[];
+  lang: Lang;
+}
+
+const { title, description, pubDate, slug, tags, lang } = Astro.props;
+
+const locale = lang === "pt" ? "pt-BR" : "en-US";
+const day = pubDate.getUTCDate().toString().padStart(2, "0");
+const month = pubDate
+  .toLocaleDateString(locale, { month: "short", timeZone: "UTC" })
+  .toUpperCase()
+  .replace(".", "");
+const year = pubDate.getUTCFullYear();
+const formattedDate = `${day} ${month} ${year}`;
+---
+
+<a
+  href={`/${lang}/blog/${slug}`}
+  class="group h-full flex flex-col gap-3 p-5 sm:p-6"
+  style="height:160px; overflow:hidden; background:var(--color-s1); border:1px solid var(--color-border-lo);"
+>
+  <!-- Meta row: date (left) | #tags (right) -->
+  <div class="flex items-start justify-between gap-3">
+    <time class="font-mono text-xs shrink-0" style="color:var(--color-muted);">
+      {formattedDate}
+    </time>
+    <div class="flex flex-wrap gap-1 justify-end">
+      {tags.slice(0, 2).map((tag) => (
+        <span
+          class="font-mono text-xs px-1.5 py-0.5"
+          style="color:var(--color-muted); border:1px solid var(--color-border-lo);"
+        >
+          #{tag}
+        </span>
+      ))}
+    </div>
+  </div>
+
+  <!-- Title (1 line) -->
+  <h3
+    class="font-semibold leading-snug text-base truncate group-hover:opacity-70"
+    style="color:var(--color-fg);"
+  >
+    {title}
+  </h3>
+
+  <!-- Description (2 lines max, then "...") -->
+  {description && (
+    <p
+      class="text-sm leading-relaxed line-clamp-2 flex-1"
+      style="color:var(--color-muted);"
+    >
+      {description}
+    </p>
+  )}
+</a>

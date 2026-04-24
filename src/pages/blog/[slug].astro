@@ -1,0 +1,14 @@
+---
+import { getCollection } from "astro:content";
+
+export async function getStaticPaths() {
+  // only non-draft root-level posts need redirect (no locale prefix in slug)
+  const posts = await getCollection("blog", ({ data }) => !data.draft);
+  return posts
+    .filter((post) => !post.slug.includes("/"))
+    .map((post) => ({ params: { slug: post.slug } }));
+}
+
+const { slug } = Astro.params;
+return Astro.redirect(`/pt/blog/${slug}`, 301);
+---

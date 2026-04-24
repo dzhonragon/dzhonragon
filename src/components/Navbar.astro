@@ -1,0 +1,143 @@
+---
+import { site, t } from "@/data/site";
+import type { Lang } from "@/data/site";
+import { getLocaleSwitchPath } from "@/i18n/utils";
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const trans = t(lang);
+const { pathname } = Astro.url;
+const switchPath = getLocaleSwitchPath(pathname, lang);
+const otherLang = lang === "pt" ? "en" : "pt";
+
+const links = [
+  { href: `/${lang}/projects`, label: trans.hero.projects },
+  { href: `/${lang}/blog`, label: trans.hero.blog },
+];
+---
+
+<header
+  class="sticky top-0 z-50"
+  style="background-color: var(--color-bg); border-bottom: 1px solid var(--color-border-lo);"
+>
+  <nav
+    class="max-w-5xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between gap-4"
+  >
+    <!-- Logo -->
+    <a
+      href={`/${lang}`}
+      class="font-mono font-semibold text-sm tracking-tight shrink-0"
+      style="color: var(--color-fg);"
+    >
+      {site.name}
+    </a>
+
+    <!-- Right side -->
+    <div class="flex items-center gap-1 sm:gap-2">
+      {
+        links.map(({ href, label }) => {
+          const isActive = pathname.startsWith(href);
+          return (
+            <a
+              href={href}
+              class={`px-2.5 py-1.5 text-sm font-medium ${
+                isActive ? "opacity-100" : "opacity-50 hover:opacity-80"
+              }`}
+              style="color: var(--color-fg);"
+            >
+              {label}
+            </a>
+          );
+        })
+      }
+
+      <!-- Separator -->
+      <span
+        class="hidden sm:block w-px h-4 mx-1"
+        style="background: var(--color-border-hi); opacity: 0.3;"
+      ></span>
+
+      <!-- Language toggle -->
+      <a
+        href={switchPath}
+        class="px-2.5 py-1.5 text-xs font-mono font-medium uppercase opacity-50 hover:opacity-80"
+        style="color: var(--color-fg);"
+      >
+        {otherLang}
+      </a>
+
+      <!-- Theme toggle -->
+      <button
+        id="theme-toggle"
+        aria-label="Toggle theme"
+        class="w-9 h-9 flex items-center justify-center opacity-60 hover:opacity-100"
+        style="color: var(--color-fg);"
+      >
+        <!-- Sun (shown in dark mode) -->
+        <svg
+          id="icon-sun"
+          class="hidden"
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="square"
+        >
+          <circle cx="12" cy="12" r="5"></circle>
+          <line x1="12" y1="1" x2="12" y2="3"></line>
+          <line x1="12" y1="21" x2="12" y2="23"></line>
+          <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+          <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+          <line x1="1" y1="12" x2="3" y2="12"></line>
+          <line x1="21" y1="12" x2="23" y2="12"></line>
+          <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+          <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+        </svg>
+        <!-- Moon (shown in light mode) -->
+        <svg
+          id="icon-moon"
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="square"
+        >
+          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+        </svg>
+      </button>
+    </div>
+  </nav>
+</header>
+
+<script>
+  function initThemeToggle() {
+    const btn = document.getElementById("theme-toggle");
+    const sun = document.getElementById("icon-sun");
+    const moon = document.getElementById("icon-moon");
+    const html = document.documentElement;
+
+    function sync() {
+      const dark = html.classList.contains("dark");
+      sun?.classList.toggle("hidden", !dark);
+      moon?.classList.toggle("hidden", dark);
+    }
+
+    sync();
+
+    btn?.addEventListener("click", () => {
+      const dark = html.classList.toggle("dark");
+      localStorage.setItem("theme", dark ? "dark" : "light");
+      sync();
+    });
+  }
+
+  initThemeToggle();
+  document.addEventListener("astro:after-swap", initThemeToggle);
+</script>

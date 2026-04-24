@@ -1,0 +1,257 @@
+---
+import Footer from "@/components/Footer.astro";
+import { site } from "@/data/site";
+import type { Lang } from "@/data/site";
+import { getLocaleSwitchPath } from "@/i18n/utils";
+
+interface Props {
+  title: string;
+  description?: string;
+  lang: Lang;
+  type?: "website" | "article";
+  canonicalURL?: string;
+  switchPath?: string;
+}
+
+const {
+  title,
+  description,
+  lang,
+  type = "website",
+  canonicalURL = new URL(Astro.url.pathname, site.url).toString(),
+  switchPath: switchPathProp,
+} = Astro.props;
+
+const resolvedDescription = description ?? site.defaultDescription[lang];
+const htmlLang = lang === "pt" ? "pt-BR" : "en";
+const otherLang = lang === "pt" ? "en" : "pt";
+const otherHtmlLang = otherLang === "pt" ? "pt-BR" : "en";
+const switchPath = switchPathProp ?? getLocaleSwitchPath(Astro.url.pathname, lang);
+const otherLangUrl = new URL(switchPath, site.url).toString();
+
+const seoDesc =
+  resolvedDescription.length > 155
+    ? resolvedDescription.substring(0, 152) + "..."
+    : resolvedDescription;
+
+const GA_ID = "G-GHMMBPX85H";
+
+// Person + WebSite structured data (website pages only)
+const personSchema = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Person",
+      "@id": `${site.url}/#person`,
+      name: site.fullName,
+      url: site.url,
+      sameAs: site.socials
+        .filter((s) => !s.href.startsWith("mailto:"))
+        .map((s) => s.href),
+    },
+    {
+      "@type": "WebSite",
+      "@id": `${site.url}/#website`,
+      url: site.url,
+      name: site.name,
+      author: { "@id": `${site.url}/#person` },
+      inLanguage: [htmlLang, otherHtmlLang],
+    },
+  ],
+};
+---
+
+<!doctype html>
+<html lang={htmlLang}>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="generator" content={Astro.generator} />
+    <link rel="canonical" href={canonicalURL} />
+
+    <!-- hreflang: bilingual site -->
+    <link rel="alternate" hreflang={htmlLang} href={canonicalURL} />
+    <link rel="alternate" hreflang={otherHtmlLang} href={otherLangUrl} />
+    <link rel="alternate" hreflang="x-default" href={lang === "pt" ? canonicalURL : otherLangUrl} />
+
+    <!-- Primary SEO -->
+    <title>{title}</title>
+    <meta name="title" content={title} />
+    <meta name="description" content={seoDesc} />
+    <meta name="author" content={site.fullName} />
+    <meta name="robots" content="index, follow" />
+
+    <!-- Open Graph -->
+    <meta property="og:type" content={type} />
+    <meta property="og:url" content={canonicalURL} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={seoDesc} />
+    <meta property="og:site_name" content={site.name} />
+    <meta property="og:locale" content={htmlLang} />
+    <meta property="og:locale:alternate" content={otherHtmlLang} />
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={seoDesc} />
+
+    <!-- Theme color (mobile browser chrome) -->
+    <meta name="theme-color" content="#EBEBEB" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#13070C" media="(prefers-color-scheme: dark)" />
+
+    <!-- Structured data: Person + WebSite (non-article pages) -->
+    {type === "website" && (
+      <Fragment set:html={`<script type="application/ld+json">${JSON.stringify(personSchema)}</script>`} />
+    )}
+
+    <!-- Extra head content injected by child layouts (e.g. BlogPosting schema) -->
+    <slot name="head" />
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- Theme: must run before paint to avoid flash -->
+    <script is:inline>
+      (function () {
+        try {
+          var s = localStorage.getItem("theme");
+          var d = window.matchMedia("(prefers-color-scheme: dark)").matches;
+          if (s === "dark" || (!s && d)) {
+            document.documentElement.classList.add("dark");
+          }
+        } catch (_) {}
+      })();
+    </script>
+
+    <!-- Google Analytics 4 -->
+    {GA_ID !== "" && (
+      <>
+        <script is:inline async src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`} />
+        <script is:inline define:vars={{ GA_ID }}>
+          window.dataLayer = window.dataLayer || [];
+          function gtag() { dataLayer.push(arguments); }
+          gtag("js", new Date());
+          gtag("config", GA_ID, { anonymize_ip: true });
+        </script>
+      </>
+    )}
+
+    <style is:global>
+      :root {
+        --color-bg: #ebebeb;
+        --color-fg: #13070c;
+        --color-s1: #e0e0e0;
+        --color-s2: #d3d3d3;
+        --color-border-hi: rgba(19, 7, 12, 0.75);
+        --color-border-lo: rgba(19, 7, 12, 0.14);
+        --color-muted: rgba(19, 7, 12, 0.45);
+      }
+      html.dark {
+        --color-bg: #13070c;
+        --color-fg: #ebebeb;
+        --color-s1: #1e1017;
+        --color-s2: #291620;
+        --color-border-hi: rgba(235, 235, 235, 0.7);
+        --color-border-lo: rgba(235, 235, 235, 0.1);
+        --color-muted: rgba(235, 235, 235, 0.45);
+      }
+
+      *, *::before, *::after { box-sizing: border-box; }
+      html { scroll-behavior: smooth; }
+
+      body {
+        background-color: var(--color-bg);
+        color: var(--color-fg);
+        transition: background-color 0.2s ease, color 0.2s ease;
+      }
+
+      a, button, [class*="border"] {
+        transition:
+          color 0.15s ease,
+          background-color 0.15s ease,
+          border-color 0.15s ease,
+          opacity 0.15s ease;
+      }
+
+      :focus-visible {
+        outline: 2px solid var(--color-fg);
+        outline-offset: 2px;
+      }
+
+      ::selection {
+        background: var(--color-fg);
+        color: var(--color-bg);
+      }
+    </style>
+  </head>
+
+  <body class="min-h-screen font-sans antialiased flex flex-col">
+
+    <!-- Persistent controls -->
+    <div
+      class="sticky top-0 z-40 flex justify-end items-center gap-1 px-4 sm:px-6 py-2"
+      style="background: var(--color-bg);"
+    >
+      <a
+        href={switchPath}
+        class="font-mono text-xs uppercase px-2 py-1.5 opacity-40 hover:opacity-80"
+        style="color: var(--color-fg);"
+      >
+        {otherLang}
+      </a>
+      <button
+        id="theme-toggle"
+        aria-label="Toggle theme"
+        class="w-8 h-8 flex items-center justify-center opacity-40 hover:opacity-80"
+        style="color: var(--color-fg);"
+      >
+        <svg id="icon-sun" class="hidden" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square">
+          <circle cx="12" cy="12" r="5"/>
+          <line x1="12" y1="1" x2="12" y2="3"/>
+          <line x1="12" y1="21" x2="12" y2="23"/>
+          <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
+          <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+          <line x1="1" y1="12" x2="3" y2="12"/>
+          <line x1="21" y1="12" x2="23" y2="12"/>
+          <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
+          <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+        </svg>
+        <svg id="icon-moon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square">
+          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+        </svg>
+      </button>
+    </div>
+
+    <main class="flex-1">
+      <slot />
+    </main>
+    <Footer />
+  </body>
+</html>
+
+<script>
+  function initTheme() {
+    const btn = document.getElementById("theme-toggle");
+    const sun = document.getElementById("icon-sun");
+    const moon = document.getElementById("icon-moon");
+    const html = document.documentElement;
+
+    function sync() {
+      const dark = html.classList.contains("dark");
+      sun?.classList.toggle("hidden", !dark);
+      moon?.classList.toggle("hidden", dark);
+    }
+    sync();
+    btn?.addEventListener("click", () => {
+      const dark = html.classList.toggle("dark");
+      localStorage.setItem("theme", dark ? "dark" : "light");
+      sync();
+    });
+  }
+  initTheme();
+</script>

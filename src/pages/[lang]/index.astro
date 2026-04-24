@@ -1,0 +1,100 @@
+---
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import ProjectCard from "@/components/ProjectCard.astro";
+import BlogPostPreview from "@/components/BlogPostPreview.astro";
+import SocialLink from "@/components/SocialLink.astro";
+import { site, t } from "@/data/site";
+import { getLocalePaths, getLocalePosts } from "@/i18n/utils";
+import { projects } from "@/data/projects";
+import type { Lang } from "@/data/site";
+
+export function getStaticPaths() {
+  return getLocalePaths();
+}
+
+const { lang } = Astro.params as { lang: Lang };
+const trans = t(lang);
+
+const posts = (await getLocalePosts(lang)).slice(0, 2);
+const featuredProjects = projects.filter((p) => p.featured);
+---
+
+<BaseLayout title={site.name} description={site.description[lang]} lang={lang}>
+  <div class="max-w-5xl mx-auto px-4 sm:px-6">
+
+    <!-- Hero -->
+    <section class="pt-10 sm:pt-16 pb-16 sm:pb-20">
+      <p
+        class="font-mono text-sm mb-3 animate-fade-up"
+        style="color: var(--color-muted); animation-delay: 0ms;"
+      >
+        {trans.hero.greeting}
+      </p>
+      <h1
+        class="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight leading-tight mb-6 animate-fade-up"
+        style="color: var(--color-fg); animation-delay: 80ms;"
+      >
+        {site.fullName}
+      </h1>
+      <p
+        class="text-base sm:text-lg leading-relaxed max-w-xl mb-10 animate-fade-up"
+        style="color: var(--color-muted); animation-delay: 160ms;"
+      >
+        {site.description[lang]}
+      </p>
+      <div
+        class="flex flex-wrap items-center gap-4 sm:gap-6 animate-fade-up"
+        style="animation-delay: 240ms;"
+      >
+        {site.socials.map((s) => <SocialLink {...s} />)}
+      </div>
+    </section>
+
+    <!-- Featured Projects -->
+    {
+      featuredProjects.length > 0 && (
+        <section class="pb-16 sm:pb-20 animate-fade-up" style="animation-delay: 320ms;">
+          <a
+            href={`/${lang}/projects`}
+            class="inline-block font-mono text-xs uppercase tracking-widest mb-5 underline underline-offset-4 hover:opacity-60"
+            style="color: var(--color-muted);"
+          >
+            {trans.projects.lead}
+          </a>
+          <div class="grid sm:grid-cols-2 gap-px" style="background: var(--color-border-lo);">
+            {featuredProjects.map((p) => (
+              <ProjectCard {...p} lang={lang} />
+            ))}
+          </div>
+        </section>
+      )
+    }
+
+    <!-- Recent Posts -->
+    {
+      posts.length > 0 && (
+        <section class="pb-20 sm:pb-28 animate-fade-up" style="animation-delay: 400ms;">
+          <a
+            href={`/${lang}/blog`}
+            class="inline-block font-mono text-xs uppercase tracking-widest mb-5 underline underline-offset-4 hover:opacity-60"
+            style="color: var(--color-muted);"
+          >
+            {trans.blog.lead}
+          </a>
+          <div class="grid sm:grid-cols-2 gap-px" style="background: var(--color-border-lo);">
+            {posts.map((post) => (
+              <BlogPostPreview
+                title={post.data.title}
+                description={post.data.description}
+                pubDate={post.data.pubDate}
+                slug={post.slug}
+                tags={post.data.tags}
+                lang={lang}
+              />
+            ))}
+          </div>
+        </section>
+      )
+    }
+  </div>
+</BaseLayout>
