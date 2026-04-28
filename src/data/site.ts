@@ -47,6 +47,7 @@ export const ui = {
       lead: "coisas que construí",
       empty: "nada aqui ainda.",
       details: "detalhes →",
+      readPost: "ler post →",
     },
     blog: {
       heading: "Escrita",
@@ -61,6 +62,10 @@ export const ui = {
       github: "GitHub",
       demo: "Demo",
       close: "fechar",
+      viewGithub: "ver no GitHub",
+      share: "compartilhar",
+      copyLink: "copiar link",
+      copied: "copiado!",
     },
   },
   en: {
@@ -77,6 +82,7 @@ export const ui = {
       lead: "things I've built",
       empty: "nothing here yet.",
       details: "details →",
+      readPost: "read post →",
     },
     blog: {
       heading: "Writing",
@@ -91,6 +97,10 @@ export const ui = {
       github: "GitHub",
       demo: "Demo",
       close: "close",
+      viewGithub: "view on GitHub",
+      share: "share",
+      copyLink: "copy link",
+      copied: "copied!",
     },
   },
 };

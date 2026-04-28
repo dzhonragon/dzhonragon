@@ -15,8 +15,7 @@ export function getStaticPaths() {
 const { lang } = Astro.params as { lang: Lang };
 const trans = t(lang);
 
-const posts = (await getLocalePosts(lang)).slice(0, 2);
-const featuredProjects = projects.filter((p) => p.featured);
+const posts = (await getLocalePosts(lang)).slice(0, 4);
 ---
 
 <BaseLayout title={site.name} description={site.description[lang]} lang={lang}>
@@ -50,9 +49,9 @@ const featuredProjects = projects.filter((p) => p.featured);
       </div>
     </section>
 
-    <!-- Featured Projects -->
+    <!-- Projects -->
     {
-      featuredProjects.length > 0 && (
+      projects.length > 0 && (
         <section class="pb-16 sm:pb-20 animate-fade-up" style="animation-delay: 320ms;">
           <a
             href={`/${lang}/projects`}
@@ -62,7 +61,7 @@ const featuredProjects = projects.filter((p) => p.featured);
             {trans.projects.lead}
           </a>
           <div class="grid sm:grid-cols-2 gap-px" style="background: var(--color-border-lo);">
-            {featuredProjects.map((p) => (
+            {projects.map((p) => (
               <ProjectCard {...p} lang={lang} />
             ))}
           </div>
